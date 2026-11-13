@@ -1,0 +1,98 @@
+# Configurable resource names
+names:
+  todolistApp: todolist
+  todolistVue: todolist-vue
+  todosApi: todo-api
+  mariadb: backend
+  defaultBackend: default-service-backend
+
+# Replicas per deployment
+replicas:
+  todolistApp: 1
+  todolistVue: 1
+  todosApi: 1
+  defaultBackend: 1
+
+# Images for each component
+images:
+  todolistApp:
+    repository: ghcr.io/bennyro-mta/todolist
+    tag: "1.10"
+  todolistVue:
+    repository: ghcr.io/bennyro-mta/todolist-vue
+    tag: "1.2"
+  todosApi:
+    repository: ghcr.io/bennyro-mta/todos-api
+    tag: "1.2"
+  mariadb:
+    repository: mariadb
+    tag: "latest"
+  defaultBackend:
+    repository: hashicorp/http-echo
+    tag: "0.2.3"
+
+# Env variables 
+# Set MY_SQL_ROOT_PASSWORD via --set (no default)
+USER: "Maman Rani"
+MYSQL_HOST: "backend"
+MY_SQL_ROOT_PASSWORD: ""
+API_BASE_URL: "/todos"
+
+# Service type for app services
+service:
+  type: LoadBalancer
+
+# Optional requests/limits
+resources:
+  todolistApp:
+    requests:
+      cpu: 50m
+      memory: 128Mi
+    limits:
+      cpu: 200m
+      memory: 256Mi
+  todolistVue:
+    requests:
+      cpu: 50m
+      memory: 128Mi
+    limits:
+      cpu: 200m
+      memory: 256Mi
+  todosApi:
+    requests:
+      cpu: 50m
+      memory: 128Mi
+    limits:
+      cpu: 200m
+      memory: 256Mi
+
+# Optional HPA 
+hpa:
+  enabled: true
+  todolistVue:
+    minReplicas: 1
+    maxReplicas: 3
+    targetCPUUtilizationPercentage: 75
+  todosApi:
+    minReplicas: 1
+    maxReplicas: 3
+    targetCPUUtilizationPercentage: 75
+
+# Optional title image (base64-encoded PNG). Supply your own via a local values file or --set-file.
+titleImage:
+  enabled: true
+  base64: ""
+
+# Ingress configuration (Traefik)
+ingress:
+  className: traefik
+  host: ""
+  annotations: {}
+
+# NetworkPolicy toggle
+networkPolicy:
+  enabled: true
+
+# Database settings
+mysql:
+  table: "tasks"

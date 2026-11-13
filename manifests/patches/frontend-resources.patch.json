@@ -1,0 +1,7 @@
+﻿[
+  {"op":"replace","path":"/spec/replicas","value":2},
+  {"op":"add","path":"/spec/template/spec/containers/0/resources","value":{
+    "requests":{"memory":"256Mi","cpu":"100m"},
+    "limits":{"memory":"512Mi","cpu":"250m"}
+  }}
+]

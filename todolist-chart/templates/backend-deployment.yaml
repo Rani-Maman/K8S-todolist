@@ -1,0 +1,77 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: {{ include "todolist.mariadbName" . }}
+  labels:
+    {{- include "todolist.labels" . | nindent 4 }}
+    {{- include "todolist.selectorLabels" (dict "app" .Values.names.mariadb "root" .) | nindent 4 }}
+spec:
+  serviceName: {{ include "todolist.mariadbName" . }}
+  replicas: 1
+  selector:
+    matchLabels:
+      {{- include "todolist.selectorLabels" (dict "app" .Values.names.mariadb "root" .) | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        {{- include "todolist.selectorLabels" (dict "app" .Values.names.mariadb "root" .) | nindent 8 }}
+    spec:
+      containers:
+      - name: mariadb
+        image: {{ .Values.images.mariadb.repository }}:{{ .Values.images.mariadb.tag }}
+        ports:
+        - containerPort: 3306
+        env:
+        - name: MYSQL_DATABASE
+          valueFrom:
+            configMapKeyRef:
+              name: {{ include "todolist.configName" . }}
+              key: MYSQL_DB
+        - name: MYSQL_ROOT_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: {{ include "todolist.secretName" . }}
+              key: MYSQL_ROOT_PASSWORD
+        - name: MYSQL_ROOT_HOST
+          value: "%"
+        - name: MARIADB_DATABASE
+          valueFrom:
+            configMapKeyRef:
+              name: {{ include "todolist.configName" . }}
+              key: MYSQL_DB
+        - name: MARIADB_ROOT_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: {{ include "todolist.secretName" . }}
+              key: MYSQL_ROOT_PASSWORD
+        - name: MARIADB_ROOT_HOST
+          value: "%"
+        readinessProbe:
+          tcpSocket:
+            port: 3306
+          initialDelaySeconds: 10
+          periodSeconds: 5
+        livenessProbe:
+          tcpSocket:
+            port: 3306
+          initialDelaySeconds: 30
+          periodSeconds: 10
+        volumeMounts:
+        - name: mariadb-data
+          mountPath: /var/lib/mysql
+        - name: initdb
+          mountPath: /docker-entrypoint-initdb.d
+      volumes:
+      - name: initdb
+        configMap:
+          name: {{ include "todolist.mariadbInitName" . }}
+          defaultMode: 493
+  volumeClaimTemplates:
+  - metadata:
+      name: mariadb-data
+    spec:
+      accessModes: ["ReadWriteOnce"]
+      resources:
+        requests:
+          storage: 1Gi
+

@@ -1,0 +1,16 @@
+﻿[
+  {"op":"add","path":"/spec/template/spec/containers/0/readinessProbe","value":{
+    "httpGet":{"path":"/health","port":5000},
+    "initialDelaySeconds":5,
+    "periodSeconds":5,
+    "timeoutSeconds":1,
+    "failureThreshold":1
+  }},
+  {"op":"add","path":"/spec/template/spec/containers/0/livenessProbe","value":{
+    "httpGet":{"path":"/health","port":5000},
+    "initialDelaySeconds":15,
+    "periodSeconds":5,
+    "timeoutSeconds":1,
+    "failureThreshold":1
+  }}
+]

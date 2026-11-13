@@ -1,0 +1,40 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: {{ include "todolist.fullname" . }}-webui
+  labels:
+    {{- include "todolist.labels" . | nindent 4 }}
+  annotations:
+    traefik.ingress.kubernetes.io/router.middlewares: {{ .Release.Namespace }}-{{ include "todolist.fullname" . }}-webui-strip@kubernetescrd
+    traefik.ingress.kubernetes.io/router.priority: "10"
+    {{- with .Values.ingress.annotations }}
+    {{- toYaml . | nindent 4 }}
+    {{- end }}
+spec:
+  {{- if .Values.ingress.className }}
+  ingressClassName: {{ .Values.ingress.className | quote }}
+  {{- end }}
+  {{- if .Values.ingress.host }}
+  rules:
+  - host: {{ .Values.ingress.host | quote }}
+    http:
+      paths:
+      - path: /webui
+        pathType: Prefix
+        backend:
+          service:
+            name: {{ include "todolist.todolistAppName" . }}
+            port:
+              number: 5000
+  {{- else }}
+  rules:
+  - http:
+      paths:
+      - path: /webui
+        pathType: Prefix
+        backend:
+          service:
+            name: {{ include "todolist.todolistAppName" . }}
+            port:
+              number: 5000
+  {{- end }}

@@ -1,0 +1,58 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "todolist.todosApiName" . }}
+  labels:
+    {{- include "todolist.labels" . | nindent 4 }}
+    {{- include "todolist.selectorLabels" (dict "app" .Values.names.todosApi "root" .) | nindent 4 }}
+spec:
+  replicas: {{ .Values.replicas.todosApi }}
+  selector:
+    matchLabels:
+      {{- include "todolist.selectorLabels" (dict "app" .Values.names.todosApi "root" .) | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        {{- include "todolist.selectorLabels" (dict "app" .Values.names.todosApi "root" .) | nindent 8 }}
+    spec:
+      initContainers:
+      - name: wait-for-db
+        image: busybox:1.36
+        command: ["sh", "-c", 'until nc -z {{ include "todolist.mariadbName" . }} 3306; do echo waiting for db; sleep 2; done']
+      containers:
+      - name: todos-api
+        image: {{ .Values.images.todosApi.repository }}:{{ .Values.images.todosApi.tag }}
+        ports:
+        - name: http
+          containerPort: 8080
+        envFrom:
+        - configMapRef:
+            name: {{ include "todolist.configName" . }}
+        env:
+        - name: MYSQL_ROOT_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: {{ include "todolist.secretName" . }}
+              key: MYSQL_ROOT_PASSWORD
+        - name: MYSQL_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: {{ include "todolist.secretName" . }}
+              key: MYSQL_ROOT_PASSWORD
+        {{- with .Values.resources.todosApi }}
+        resources:
+          {{- toYaml . | nindent 10 }}
+        {{- end }}
+        readinessProbe:
+          httpGet:
+            path: /readyz
+            port: 8080
+          initialDelaySeconds: 5
+          periodSeconds: 5
+        livenessProbe:
+          httpGet:
+            path: /livez
+            port: 8080
+          initialDelaySeconds: 10
+          periodSeconds: 10
+

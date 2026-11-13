@@ -1,0 +1,45 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: {{ include "todolist.fullname" . }}-ingress
+  labels:
+    {{- include "todolist.labels" . | nindent 4 }}
+  annotations:
+    traefik.ingress.kubernetes.io/router.priority: "1"
+    {{- with .Values.ingress.annotations }}
+    {{- toYaml . | nindent 4 }}
+    {{- end }}
+spec:
+  {{- if .Values.ingress.className }}
+  ingressClassName: {{ .Values.ingress.className | quote }}
+  {{- end }}
+  defaultBackend:
+    service:
+      name: {{ include "todolist.defaultBackendName" . }}
+      port:
+        number: 8080
+  {{- if .Values.ingress.host }}
+  rules:
+  - host: {{ .Values.ingress.host | quote }}
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: {{ include "todolist.todolistVueName" . }}
+            port:
+              number: 8080
+  {{- else }}
+  rules:
+  - http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: {{ include "todolist.todolistVueName" . }}
+            port:
+              number: 8080
+{{- end }}
+

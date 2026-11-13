@@ -1,0 +1,49 @@
+{{/*
+NOTES.txt - Displays helpful information after helm install
+*/}}
+
+Todolist has been deployed!
+
+Release: {{ .Release.Name }}
+Namespace: {{ .Release.Namespace }}
+
+Components:
+  Todolist app:  {{ include "todolist.todolistAppName" . }}
+  Todolist Vue:  {{ include "todolist.todolistVueName" . }}
+  Todos API:     {{ include "todolist.todosApiName" . }}
+  MariaDB:       {{ include "todolist.mariadbName" . }}
+  Default backend: {{ include "todolist.defaultBackendName" . }}
+
+Images:
+  Todolist app: {{ .Values.images.todolistApp.repository }}:{{ .Values.images.todolistApp.tag }}
+  Todolist Vue: {{ .Values.images.todolistVue.repository }}:{{ .Values.images.todolistVue.tag }}
+  Todos API:    {{ .Values.images.todosApi.repository }}:{{ .Values.images.todosApi.tag }}
+User:  {{ .Values.USER }}
+
+Required install/upgrade value:
+  MY_SQL_ROOT_PASSWORD must be set via --set or --values.
+Example:
+  helm upgrade --install {{ .Release.Name }} {{ .Chart.Name }} -n {{ .Release.Namespace }} --set MY_SQL_ROOT_PASSWORD=YourPassword
+
+Optional overrides:
+  helm upgrade --install {{ .Release.Name }} {{ .Chart.Name }} -n {{ .Release.Namespace }} --set USER="Last-First" --set API_BASE_URL="/todos"
+  helm upgrade --install {{ .Release.Name }} {{ .Chart.Name }} -n {{ .Release.Namespace }} --set service.type=LoadBalancer
+
+Optional title image:
+  Set titleImage.base64 in values.yaml (base64 of title-image.png) to enable.
+
+Optional HPA:
+  Disable with hpa.enabled=false in values.yaml (requires metrics server when enabled).
+
+Ingress:
+  kubectl get ingress -n {{ .Release.Namespace }} {{ include "todolist.fullname" . }}-ingress
+Paths:
+  /      -> {{ include "todolist.todolistVueName" . }}
+  /todos -> {{ include "todolist.todosApiName" . }}
+  /webui -> {{ include "todolist.todolistAppName" . }}
+
+Access (minikube + Traefik):
+  minikube service -n traefik traefik --url
+
+Health check:
+  kubectl -n {{ .Release.Namespace }} get pods,svc,deploy,sts,ingress,netpol

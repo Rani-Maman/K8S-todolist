@@ -1,0 +1,60 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "todolist.todolistAppName" . }}
+  labels:
+    {{- include "todolist.labels" . | nindent 4 }}
+    {{- include "todolist.selectorLabels" (dict "app" .Values.names.todolistApp "root" .) | nindent 4 }}
+spec:
+  replicas: {{ .Values.replicas.todolistApp }}
+  selector:
+    matchLabels:
+      {{- include "todolist.selectorLabels" (dict "app" .Values.names.todolistApp "root" .) | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        {{- include "todolist.selectorLabels" (dict "app" .Values.names.todolistApp "root" .) | nindent 8 }}
+    spec:
+      initContainers:
+      - name: wait-for-db
+        image: busybox:1.36
+        command: ["sh", "-c", 'until nc -z {{ include "todolist.mariadbName" . }} 3306; do echo waiting for db; sleep 2; done']
+      containers:
+      - name: todolist
+        image: {{ .Values.images.todolistApp.repository }}:{{ .Values.images.todolistApp.tag }}
+        ports:
+        - name: http
+          containerPort: 5000
+        envFrom:
+        - configMapRef:
+            name: {{ include "todolist.configName" . }}
+        env:
+        - name: MYSQL_ROOT_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: {{ include "todolist.secretName" . }}
+              key: MYSQL_ROOT_PASSWORD
+        - name: MYSQL_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: {{ include "todolist.secretName" . }}
+              key: MYSQL_ROOT_PASSWORD
+        - name: USER
+          value: {{ .Values.USER | quote }}
+        {{- with .Values.resources.todolistApp }}
+        resources:
+          {{- toYaml . | nindent 10 }}
+        {{- end }}
+        readinessProbe:
+          httpGet:
+            path: /readyz
+            port: 5000
+          initialDelaySeconds: 5
+          periodSeconds: 5
+        livenessProbe:
+          httpGet:
+            path: /livez
+            port: 5000
+          initialDelaySeconds: 10
+          periodSeconds: 10
+

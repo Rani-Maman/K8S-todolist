@@ -1,0 +1,19 @@
+# Secrets and local-only overrides
+secret.env
+*.local.yaml
+.env
+.env.*
+*.pem
+*.key
+kubeconfig*
+
+# Helm build output
+*.tgz
+charts/*/charts/
+
+# Editor / OS / tooling
+.vscode/
+.idea/
+.claude/
+.DS_Store
+Thumbs.db

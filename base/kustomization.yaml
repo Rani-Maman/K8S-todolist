@@ -1,0 +1,15 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+resources:
+  - todolist-base.yaml
+
+# The DB password is never committed. Copy secret.env.example to secret.env
+# (git-ignored) and set your own value before building.
+secretGenerator:
+  - name: todolist-secret
+    namespace: todolist
+    envs:
+      - secret.env
+
+generatorOptions:
+  disableNameSuffixHash: true

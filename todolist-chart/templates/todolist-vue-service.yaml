@@ -1,0 +1,15 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "todolist.todolistVueName" . }}
+  labels:
+    {{- include "todolist.labels" . | nindent 4 }}
+spec:
+  type: {{ .Values.service.type }}
+  selector:
+    {{- include "todolist.selectorLabels" (dict "app" .Values.names.todolistVue "root" .) | nindent 4 }}
+  ports:
+  - name: http
+    port: 8080
+    targetPort: 8080
+

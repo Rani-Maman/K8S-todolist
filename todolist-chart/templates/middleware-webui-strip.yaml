@@ -1,0 +1,10 @@
+apiVersion: traefik.io/v1alpha1
+kind: Middleware
+metadata:
+  name: {{ include "todolist.fullname" . }}-webui-strip
+  labels:
+    {{- include "todolist.labels" . | nindent 4 }}
+spec:
+  stripPrefix:
+    prefixes:
+    - /webui

@@ -1,0 +1,19 @@
+# Enables root@% so the app can connect from another pod
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "todolist.mariadbInitName" . }}
+  labels:
+    {{- include "todolist.labels" . | nindent 4 }}
+data:
+  00-allow-remote-root.sh: |
+    #!/bin/sh
+    set -e
+    echo "Configuring remote root access."
+    mariadb -uroot -p"${MARIADB_ROOT_PASSWORD}" -e "
+      CREATE USER IF NOT EXISTS 'root'@'%' IDENTIFIED BY '${MARIADB_ROOT_PASSWORD}';
+      GRANT ALL PRIVILEGES ON *.* TO 'root'@'%' WITH GRANT OPTION;
+      FLUSH PRIVILEGES;
+    "
+    echo "Remote root enabled."
+
